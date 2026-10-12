@@ -2186,7 +2186,9 @@ function geoGL(M,SC,cam,hidden){
   return geo;
 }
 function cropGL(M,SC,sh,a,cam,geo){
-  if(sh.type==='ecu'){const G=geo.people[Math.min(sh.t||0,M.people.length-1)];if(G&&G.r>0){const mouth=sh.focus==='mouth',cy=G.hy+G.r*(mouth?.32:.04),v=a<1;let W,H;if(v){W=G.r*(mouth?1.2:1.35);H=W/a}else{H=G.r*(mouth?.9:1);W=H*a}return [G.hx-W/2,cy-H/2,W,H]}}
+  if(sh.type==='ecu'){const ti=Math.min(sh.t||0,M.people.length-1),G=geo.people[ti],Q=SC.people[ti];if(G&&G.r>0&&Q){const mouth=sh.focus==='mouth',v=a<1;
+    const fwd=new THREE.Vector3(0,0,1).applyQuaternion(Q.head.getWorldQuaternion(new THREE.Quaternion())),pt=Q.headW.clone().add(fwd.multiplyScalar(mouth?10.5:11)).add(new THREE.Vector3(0,mouth?-6.5:.6,0)),c=pj(cam,pt);
+    let W,H;if(v){W=G.r*(mouth?.62:.68);H=W/a}else{H=G.r*(mouth?.5:.52);W=H*a}const cy=v&&!mouth?c.y+H*.12:c.y;return [c.x-W/2,cy-H/2,W,H]}}
   const c=cropGL0(M,SC,sh,a,cam,geo);
   if(sh.type==='detail'&&sh.macro){const k=sh.prop?.55:.72,cx=c[0]+c[2]/2,cy=c[1]+c[3]/2;return [cx-c[2]*k/2,cy-c[3]*k/2,c[2]*k,c[3]*k]}
   return c;
