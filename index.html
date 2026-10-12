@@ -2492,7 +2492,7 @@ async function saveFile(name,blob){
 async function saveVideo(){const f=LIVE.file;if(f)saveFile(f.name,f)}
 
 /* ---------- share: project code, roles, team ---------- */
-const APP_LINK='';/* например https://t.me/raskadrovshik_bot/app — тогда в сообщениях будет ссылка, открывающая проект */
+const APP_LINK='https://t.me/raskadrovshik_bot/frame';/* например https://t.me/raskadrovshik_bot/app — тогда в сообщениях будет ссылка, открывающая проект */
 const b64u={enc:u8=>{let s='';for(let i=0;i<u8.length;i+=8192)s+=String.fromCharCode.apply(null,u8.subarray(i,i+8192));return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')},dec:str=>{str=str.replace(/-/g,'+').replace(/_/g,'/');while(str.length%4)str+='=';const b=atob(str),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u}};
 async function zip(str,inflate){
   const CS=inflate?window.DecompressionStream:window.CompressionStream;if(!CS)throw new Error('nozip');
@@ -3623,17 +3623,19 @@ document.addEventListener('keydown',e=>{
 bindDrag($('preview'),()=>S.pv,()=>{$('preview').innerHTML=frameSVG(MODEL,{type:'wide'},aspect(),{labels:true,aria:'Превью сцены, общий план',adj:S.pv});syncZoom($('pvAdj'),S.pv)},save,true);
 
 /* ---------- Telegram ---------- */
-if(tg){try{tg.ready();tg.expand();document.documentElement.setAttribute('data-theme',tg.colorScheme==='dark'?'dark':'light');
-  const tp=tg.themeParams||{},st=document.documentElement.style;
-  if(tp.secondary_bg_color)st.setProperty('--bg',tp.secondary_bg_color);if(tp.bg_color)st.setProperty('--surface',tp.bg_color);if(tp.text_color)st.setProperty('--ink',tp.text_color);if(tp.hint_color)st.setProperty('--muted',tp.hint_color);if(tp.button_color){st.setProperty('--accent',tp.button_color);st.setProperty('--accent-soft',mix(tp.button_color,tp.bg_color||'#FFFFFF',.85))}if(tp.button_text_color)st.setProperty('--accent-ink',tp.button_text_color);
-  if(tg.setHeaderColor)tg.setHeaderColor('secondary_bg_color');
+function applyTgTheme(){if(!tg)return;try{document.documentElement.setAttribute('data-theme',tg.colorScheme==='dark'?'dark':'light');
+  const tp=tg.themeParams||{},st=document.documentElement.style,hx=c=>typeof c==='string'&&/^#[0-9a-f]{6}$/i.test(c);
+  if(hx(tp.secondary_bg_color))st.setProperty('--bg',tp.secondary_bg_color);if(hx(tp.bg_color))st.setProperty('--surface',tp.bg_color);if(hx(tp.text_color))st.setProperty('--ink',tp.text_color);if(hx(tp.hint_color))st.setProperty('--muted',tp.hint_color);if(hx(tp.button_color)){st.setProperty('--accent',tp.button_color);st.setProperty('--accent-soft',mix(tp.button_color,hx(tp.bg_color)?tp.bg_color:'#FFFFFF',.85))}if(hx(tp.button_text_color))st.setProperty('--accent-ink',tp.button_text_color);
+  if(tg.setHeaderColor)tg.setHeaderColor('secondary_bg_color');if(tg.setBackgroundColor)tg.setBackgroundColor('secondary_bg_color')}catch(e){}}
+if(tg){try{applyTgTheme();tg.expand();
   if(tg.disableVerticalSwipes)tg.disableVerticalSwipes();
   if(tg.BackButton)tg.BackButton.onClick(closeTop);
-  tg.onEvent&&tg.onEvent('themeChanged',()=>location.reload());}catch(e){}}
+  let thT=null;tg.onEvent&&tg.onEvent('themeChanged',()=>{clearTimeout(thT);thT=setTimeout(applyTgTheme,60)});
+  tg.ready();}catch(e){}}
 setInputs();
 render();
 takesLoad().then(()=>{renderTabs();if(S.tab==='shoot')renderShoot();if(S.tab==='cut')renderCut()});
-if(!S.wiz)setTimeout(()=>{if(!layers.length)openWizard()},350);
+if(!S.wiz&&!layers.length)openWizard();
 bootStartParam().then(ok=>{if(!ok)cloudInit()});
 try{Object.defineProperty(window,'__rk',{value:{get M(){return MODEL},get SHOTS(){return SHOTS},get KEYS(){return KEYS},TDB,CUT,addTake,buildCut,bestTake,takesLoad,cutPlay,checksFor,quickify,GL,renderGL,camSpec,scene3D,hiddenFor,mkCam,poseShot,projCode,readCode,openByCode,roleText,composeFrame,S,prepareShot,subjPts,pj,LENS},configurable:true})}catch(e){}
 
